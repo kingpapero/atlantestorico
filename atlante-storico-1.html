@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlante Storico</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080b;--sf:#0d1018;--sf2:#131820;--bd:#1a2332;
+  --ac:#c8965a;--ac2:#6b9fd4;--up:#3ecf8e;--dn:#e05c5c;
+  --tx:#c8d4e0;--dm:#4e606f;--br:#edf2f8;
+  --ant:#c8965a;--cls:#b45309;--med:#8b7cf6;--mod:#5b9bd5;--rec:#0891b2;--xx:#059669;--con:#3ecf8e;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif;font-size:13px;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(200,150,90,.04),transparent 55%);pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:18px 16px;}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
+.hdr-title{font-family:'Playfair Display',serif;font-size:26px;color:var(--br);letter-spacing:-.5px;}
+.hdr-title span{color:var(--ac);font-style:italic;}
+.hdr-sub{font-size:11px;color:var(--dm);margin-top:3px;font-weight:300;}
+.hdr-r{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dm);text-align:right;line-height:1.9;}
+.hdr-dot{display:inline-block;width:5px;height:5px;background:var(--ac);border-radius:50%;margin-right:4px;animation:pulse 2.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+.time-panel{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:18px 20px;margin-bottom:14px;}
+.time-top{display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.time-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dm);}
+.year-display{font-family:'Playfair Display',serif;font-size:28px;color:var(--br);min-width:130px;}
+.year-input{background:var(--sf2);border:1px solid var(--bd);color:var(--br);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:6px 10px;border-radius:5px;width:110px;text-align:center;}
+.year-input:focus{outline:none;border-color:var(--ac);}
+.era-badge{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:3px;border:1px solid;margin-left:auto;}
+.timeline-wrap{position:relative;padding:8px 0 24px;}
+.timeline-track{position:relative;height:6px;background:var(--bd);border-radius:3px;cursor:pointer;}
+.timeline-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;pointer-events:none;}
+.timeline-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--ac);border:3px solid var(--bg);cursor:grab;z-index:2;}
+.timeline-thumb:active{cursor:grabbing;transform:translate(-50%,-50%) scale(1.2);}
+.timeline-marks{position:absolute;bottom:0;left:0;right:0;}
+.timeline-mark{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--dm);position:absolute;transform:translateX(-50%);}
+.era-strip{display:flex;height:3px;border-radius:2px;overflow:hidden;margin-top:5px;}
+.era-seg{height:100%;}
+
+.entities-panel{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:13px;}
+.entities-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dm);margin-bottom:10px;}
+.entities-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:5px;}
+.ec{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;cursor:pointer;transition:all .15s;position:relative;}
+.ec::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-color);border-radius:3px 0 0 3px;opacity:0;transition:opacity .15s;}
+.ec:hover{border-color:var(--c-color);}
+.ec:hover::before{opacity:1;}
+.ec.sel-1,.ec.sel-2,.ec.sel-3{border-color:var(--c-color);background:rgba(255,255,255,.03);}
+.ec.sel-1::before,.ec.sel-2::before,.ec.sel-3::before{opacity:1;}
+.ec.disabled{opacity:.2;pointer-events:none;}
+.ec-flag{font-size:16px;margin-bottom:3px;display:block;}
+.ec-name{font-size:10px;font-weight:500;color:var(--br);line-height:1.25;}
+.ec-civ{font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--dm);margin-top:2px;line-height:1.3;}
+.sel-badge{position:absolute;top:4px;right:4px;width:15px;height:15px;border-radius:50%;background:var(--ac);color:#07080b;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;}
+
+.analyze-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.btn-analyze{background:var(--ac);color:#07080b;border:none;padding:11px 26px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-weight:700;transition:opacity .2s;}
+.btn-analyze:hover{opacity:.82;}
+.btn-analyze:disabled{opacity:.3;cursor:not-allowed;}
+.btn-reset{background:transparent;color:var(--dm);border:1px solid var(--bd);padding:11px 14px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-reset:hover{border-color:var(--dm);color:var(--tx);}
+.sel-summary{font-size:11px;color:var(--dm);}
+.sel-summary strong{color:var(--ac);}
+
+.results{animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.result-header{background:var(--sf);border:1px solid var(--bd);border-radius:10px 10px 0 0;padding:16px 18px;border-bottom:none;display:flex;align-items:center;gap:12px;}
+.rh-flag{font-size:36px;}
+.rh-name{font-family:'Playfair Display',serif;font-size:21px;color:var(--br);}
+.rh-civ{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-top:2px;}
+.rh-year{font-family:'Playfair Display',serif;font-size:15px;color:var(--dm);margin-left:auto;}
+.res-tabs{display:flex;background:var(--sf);border:1px solid var(--bd);border-left:1px solid var(--bd);border-right:1px solid var(--bd);padding:0 18px;}
+.res-tab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 12px;cursor:pointer;border:none;background:transparent;color:var(--dm);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;}
+.res-tab:hover{color:var(--tx);}
+.res-tab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.res-body{background:var(--sf);border:1px solid var(--bd);border-radius:0 0 10px 10px;padding:18px;border-top:none;min-height:180px;}
+.res-content{font-size:12px;line-height:1.88;color:var(--tx);font-weight:300;}
+.res-content strong{color:var(--ac);font-weight:500;}
+.res-content h4{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac2);margin-bottom:5px;margin-top:12px;}
+.res-content h4:first-child{margin-top:0;}
+.res-content p{margin-bottom:8px;}
+.res-content p:last-child{margin-bottom:0;}
+.res-content ul{margin:5px 0 8px 15px;}
+.res-content li{margin-bottom:3px;}
+.loading-msg{color:var(--dm);font-size:11.5px;display:flex;align-items:center;gap:8px;}
+.spinner{width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.compare-heads{display:grid;gap:7px;margin-bottom:0;}
+.compare-head{background:var(--sf);border:1px solid var(--bd);border-radius:10px 10px 0 0;padding:12px 14px;display:flex;align-items:center;gap:9px;border-bottom:none;}
+.comp-flag{font-size:24px;}
+.comp-name{font-family:'Playfair Display',serif;font-size:15px;color:var(--br);}
+.comp-civ{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--ac);}
+.dim-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;}
+.dim-tab{background:var(--sf);border:1px solid var(--bd);border-radius:5px;padding:7px 12px;cursor:pointer;font-size:11px;color:var(--dm);transition:all .15s;}
+.dim-tab:hover,.dim-tab.on{background:var(--sf2);border-color:var(--ac);color:var(--ac);}
+.comp-body{background:var(--sf);border:1px solid var(--bd);border-top:none;padding:14px;}
+.comp-cols{display:grid;gap:9px;margin-bottom:13px;}
+.comp-col{background:var(--sf2);border:1px solid var(--bd);border-radius:0 0 7px 7px;padding:13px;border-top:none;}
+.comp-col-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dm);margin-bottom:9px;}
+.rel-box{background:var(--sf);border:1px solid rgba(200,150,90,.22);border-radius:10px;padding:16px;margin-top:13px;}
+.rel-box-title{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--ac);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.spinner-sm{width:12px;height:12px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite;display:none;}
+.spinner-sm.show{display:inline-block;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;gap:10px;}
+.empty-icon{font-size:34px;opacity:.1;}
+.empty-text{font-family:'Playfair Display',serif;font-size:15px;color:var(--dm);}
+.empty-sub{font-size:10px;color:var(--dm);opacity:.55;text-align:center;line-height:1.6;}
+
+.retry-btn{background:transparent;border:1px solid var(--dm);color:var(--dm);padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;transition:all .15s;}
+.retry-btn:hover{border-color:var(--ac);color:var(--ac);}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Atlante <span>Storico</span></div>
+    <div class="hdr-sub">38 civiltà · 3000 a.C. — oggi · profili e confronti generati da AI per anno</div>
+  </div>
+  <div class="hdr-r"><span class="hdr-dot"></span>AI-powered · Claude<br>1-3 civiltà · 5 dimensioni</div>
+</div>
+
+<div class="time-panel">
+  <div class="time-top">
+    <div class="time-label">Anno</div>
+    <div class="year-display" id="yearDisplay">2024 d.C.</div>
+    <input class="year-input" type="number" id="yearInput" value="2024" min="-3000" max="2024">
+    <div class="era-badge" id="eraBadge">Contemporanea</div>
+  </div>
+  <div class="timeline-wrap">
+    <div class="timeline-track" id="tlTrack">
+      <div class="timeline-fill" id="tlFill" style="width:100%"></div>
+      <div class="timeline-thumb" id="tlThumb" style="left:100%"></div>
+    </div>
+    <div id="tlMarks"></div>
+  </div>
+  <div class="era-strip" id="eraStrip"></div>
+</div>
+
+<div class="entities-panel">
+  <div class="entities-label">— Seleziona 1, 2 o 3 civiltà (clicca per selezionare, riclicca per deselezionare)</div>
+  <div class="entities-grid" id="entGrid"></div>
+</div>
+
+<div class="analyze-bar">
+  <button class="btn-analyze" id="btnGo" disabled onclick="runAnalysis()">▶ Analizza</button>
+  <button class="btn-reset" onclick="resetAll()">↺ Reset</button>
+  <button class="btn-reset" id="btnRnd" onclick="runRandom()" style="border-color:var(--ac2);color:var(--ac2)">🎲 Random</button>
+  <div class="sel-summary" id="selSum">Nessuna civiltà selezionata</div>
+</div>
+
+<div id="resultsArea">
+  <div class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <div class="empty-text">Seleziona anno e civiltà</div>
+    <div class="empty-sub">Trascina lo slider o digita un anno · poi scegli 1-3 civiltà<br>e clicca Analizza per il profilo storico AI</div>
+  </div>
+</div>
+
+</div>
+<script>
+const ENTITIES = [
+  {id:'egypt',name:'Egitto / Kemet',flag:'🇪🇬',modern:'Egitto',color:'#f59e0b',lat:26,lng:30},
+  {id:'iraq',name:'Iraq / Mesopotamia',flag:'🇮🇶',modern:'Iraq',color:'#ef4444',lat:33,lng:44},
+  {id:'iran',name:'Iran / Persia',flag:'🇮🇷',modern:'Iran',color:'#10b981',lat:32,lng:53},
+  {id:'italy',name:'Italia / Roma',flag:'🇮🇹',modern:'Italia',color:'#34d399',lat:42,lng:12},
+  {id:'greece',name:'Grecia',flag:'🇬🇷',modern:'Grecia',color:'#60a5fa',lat:39,lng:22},
+  {id:'china',name:'Cina',flag:'🇨🇳',modern:'Cina',color:'#ef4444',lat:35,lng:105},
+  {id:'india',name:'India',flag:'🇮🇳',modern:'India',color:'#f59e0b',lat:20,lng:77},
+  {id:'mexico',name:'Messico / Maya / Aztechi',flag:'🇲🇽',modern:'Messico',color:'#a78bfa',lat:23,lng:-102},
+  {id:'peru',name:'Peru / Inca',flag:'🇵🇪',modern:'Peru',color:'#fde047',lat:-10,lng:-76},
+  {id:'turkey',name:'Turchia / Ottomani',flag:'🇹🇷',modern:'Turchia',color:'#f43f5e',lat:39,lng:35},
+  {id:'usa',name:'USA',flag:'🇺🇸',modern:'USA',color:'#3b82f6',lat:38,lng:-97},
+  {id:'russia',name:'Russia',flag:'🇷🇺',modern:'Russia',color:'#f97316',lat:60,lng:60},
+  {id:'germany',name:'Germania',flag:'🇩🇪',modern:'Germania',color:'#eab308',lat:51,lng:10},
+  {id:'france',name:'Francia / Gallia',flag:'🇫🇷',modern:'Francia',color:'#8b5cf6',lat:46,lng:2},
+  {id:'uk',name:'Regno Unito / Britannia',flag:'🇬🇧',modern:'Regno Unito',color:'#06b6d4',lat:54,lng:-2},
+  {id:'spain',name:'Spagna / Hispania',flag:'🇪🇸',modern:'Spagna',color:'#fb923c',lat:40,lng:-4},
+  {id:'japan',name:'Giappone',flag:'🇯🇵',modern:'Giappone',color:'#ec4899',lat:36,lng:138},
+  {id:'saudi',name:'Arabia Saudita',flag:'🇸🇦',modern:'Arabia Saudita',color:'#84cc16',lat:24,lng:45},
+  {id:'israel',name:'Israele / Canaan',flag:'🇮🇱',modern:'Israele',color:'#3b82f6',lat:31,lng:35},
+  {id:'ethiopia',name:'Etiopia / Aksum',flag:'🇪🇹',modern:'Etiopia',color:'#22c55e',lat:9,lng:40},
+  {id:'mali',name:'Mali / Ghana / Songhai',flag:'🇲🇱',modern:'Mali',color:'#f97316',lat:17,lng:-4},
+  {id:'brazil',name:'Brasile',flag:'🇧🇷',modern:'Brasile',color:'#22c55e',lat:-10,lng:-53},
+  {id:'mongolia',name:'Mongolia / Impero Mongolo',flag:'🇲🇳',modern:'Mongolia',color:'#94a3b8',lat:46,lng:105},
+  {id:'pakistan',name:'Pakistan / Civiltà Indo',flag:'🇵🇰',modern:'Pakistan',color:'#4ade80',lat:30,lng:70},
+  {id:'poland',name:'Polonia',flag:'🇵🇱',modern:'Polonia',color:'#e879f9',lat:52,lng:20},
+  {id:'nigeria',name:'Nigeria / Benin',flag:'🇳🇬',modern:'Nigeria',color:'#a3e635',lat:9,lng:8},
+  {id:'uae',name:'Emirati Arabi Uniti',flag:'🇦🇪',modern:'Emirati',color:'#10b981',lat:24,lng:54},
+  {id:'qatar',name:'Qatar',flag:'🇶🇦',modern:'Qatar',color:'#8b5cf6',lat:25,lng:51},
+  {id:'indonesia',name:'Indonesia / Srivijaya',flag:'🇮🇩',modern:'Indonesia',color:'#f97316',lat:-5,lng:120},
+  {id:'korea_south',name:'Corea',flag:'🇰🇷',modern:'Corea del Sud',color:'#0ea5e9',lat:36,lng:128},
+  {id:'cambodia',name:'Cambogia / Khmer',flag:'🇰🇭',modern:'Cambogia',color:'#fb923c',lat:12,lng:105},
+  {id:'thailand',name:'Thailandia / Siam',flag:'🇹🇭',modern:'Thailandia',color:'#f472b6',lat:15,lng:101},
+  {id:'vietnam',name:'Vietnam / Dai Viet',flag:'🇻🇳',modern:'Vietnam',color:'#dc2626',lat:16,lng:108},
+  {id:'australia',name:'Australia / Aborigeni',flag:'🇦🇺',modern:'Australia',color:'#d97706',lat:-25,lng:134},
+  {id:'newzealand',name:'Nuova Zelanda / Aotearoa',flag:'🇳🇿',modern:'Nuova Zelanda',color:'#22d3ee',lat:-41,lng:174},
+  {id:'portugal',name:'Portogallo / Lusitania',flag:'🇵🇹',modern:'Portogallo',color:'#a78bfa',lat:39,lng:-8},
+  {id:'sweden',name:'Svezia / Vichinghi',flag:'🇸🇪',modern:'Svezia',color:'#fde047',lat:60,lng:15},
+  {id:'norway',name:'Norvegia / Vichinghi',flag:'🇳🇴',modern:'Norvegia',color:'#60a5fa',lat:62,lng:10},
+];
+// ── ERA MARKERS
+const ERA_NAMES = {
+  'egypt': [
+    [-3100, 'Antico Egitto / Faraoni'],
+    [-332, 'Periodo Tardo'],
+    [-332, 'Tolomei'],
+    [-30, 'Provincia Romana'],
+    [641, 'Egitto Islamico'],
+    [1517, 'Ottomano'],
+    [1798, 'Egitto Moderno'],
+    [1952, 'Repubblica'],
+  ],
+  'iraq': [
+    [-3500, 'Sumer'],
+    [-2350, 'Accadici'],
+    [-1894, 'Babilonia'],
+    [-911, 'Assiria'],
+    [-539, 'Achemenidi'],
+    [-330, 'Ellenismo'],
+    [226, 'Sassanidi'],
+    [636, 'Califfato'],
+    [1258, 'Mongoli'],
+    [1534, 'Ottomano'],
+    [1920, 'Mandato Britannico'],
+    [1932, 'Regno d\'Iraq'],
+    [1958, 'Repubblica'],
+    [2003, 'Iraq Post-invasione'],
+  ],
+  'iran': [
+    [-3000, 'Elamiti'],
+    [-550, 'Achemenidi'],
+    [-330, 'Seleucidi'],
+    [-247, 'Parti'],
+    [224, 'Sassanidi'],
+    [651, 'Califfato'],
+    [1501, 'Safavidi'],
+    [1796, 'Qajar'],
+    [1925, 'Pahlavi'],
+    [1979, 'Repubblica Islamica'],
+  ],
+  'italy': [
+    [-753, 'Monarchia Romana'],
+    [-509, 'Repubblica Romana'],
+    [-27, 'Impero Romano'],
+    [476, 'Regni Barbarici'],
+    [800, 'Sacro Romano Impero'],
+    [1300, 'Rinascimento'],
+    [1861, 'Regno d\'Italia'],
+    [1946, 'Repubblica Italiana'],
+  ],
+  'greece': [
+    [-2000, 'Minoici / Micenei'],
+    [-800, 'Poleis Greche'],
+    [-499, 'Periodo Classico'],
+    [-338, 'Macedonia'],
+    [330, 'Bisanzio'],
+    [1453, 'Ottomano'],
+    [1821, 'Grecia Moderna'],
+  ],
+  'china': [
+    [-2100, 'Xia'],
+    [-1600, 'Shang'],
+    [-1046, 'Zhou'],
+    [-221, 'Qin'],
+    [-206, 'Han'],
+    [618, 'Tang'],
+    [960, 'Song'],
+    [1271, 'Yuan'],
+    [1368, 'Ming'],
+    [1644, 'Qing'],
+    [1912, 'Repubblica'],
+    [1949, 'Repubblica Popolare'],
+  ],
+  'india': [
+    [-2600, 'Civiltà Indo'],
+    [-322, 'Maurya'],
+    [320, 'Gupta'],
+    [1526, 'Mughal'],
+    [1757, 'Raj Britannico'],
+    [1947, 'India Indipendente'],
+  ],
+  'mexico': [
+    [-2000, 'Olmeca'],
+    [-500, 'Maya'],
+    [1300, 'Aztechi'],
+    [1521, 'Nuova Spagna'],
+    [1821, 'Messico'],
+    [1929, 'Messico Moderno'],
+  ],
+  'peru': [
+    [-3000, 'Caral'],
+    [-900, 'Chavin'],
+    [1438, 'Inca'],
+    [1532, 'Vicereame del Peru'],
+    [1821, 'Repubblica del Peru'],
+  ],
+  'turkey': [
+    [-2000, 'Ittiti'],
+    [-550, 'Achemenidi'],
+    [-334, 'Alessandro'],
+    [330, 'Bisanzio'],
+    [1071, 'Selgiuchidi'],
+    [1299, 'Ottomano'],
+    [1923, 'Repubblica Turca'],
+  ],
+  'usa': [
+    [-13000, 'Indigeni'],
+    [1607, 'Colonie Britanniche'],
+    [1776, 'USA'],
+    [1865, 'Industrializzazione'],
+    [1945, 'Superpotenza'],
+  ],
+  'russia': [
+    [-500, 'Sciti'],
+    [862, 'Rus di Kiev'],
+    [1237, 'Mongoli'],
+    [1480, 'Granducato Mosca'],
+    [1721, 'Impero Russo'],
+    [1917, 'URSS'],
+    [1991, 'Federazione Russa'],
+  ],
+  'germany': [
+    [-500, 'Tribù Germaniche'],
+    [814, 'Sacro Romano Impero'],
+    [1871, 'Secondo Reich'],
+    [1919, 'Weimar'],
+    [1933, 'Terzo Reich'],
+    [1949, 'BRD/DDR'],
+    [1990, 'Germania Unificata'],
+  ],
+  'france': [
+    [-52, 'Gallia Romana'],
+    [481, 'Franchi'],
+    [987, 'Francia Medievale'],
+    [1789, 'Rivoluzione'],
+    [1804, 'Napoleone'],
+    [1870, 'Terza Repubblica'],
+    [1958, 'Quinta Repubblica'],
+  ],
+  'uk': [
+    [-100, 'Britannia Pre-Romana'],
+    [43, 'Britannia Romana'],
+    [1066, 'Medioevo'],
+    [1534, 'Tudor'],
+    [1707, 'Gran Bretagna'],
+    [1815, 'Impero Britannico'],
+    [1945, 'Post-imperiale'],
+  ],
+  'spain': [
+    [-1100, 'Iberi'],
+    [-19, 'Hispania Romana'],
+    [711, 'Al-Andalus'],
+    [1492, 'Spagna Imperiale'],
+    [1978, 'Democrazia'],
+  ],
+  'japan': [
+    [-300, 'Yayoi'],
+    [538, 'Asuka'],
+    [1185, 'Shogunato'],
+    [1603, 'Tokugawa'],
+    [1868, 'Meiji'],
+    [1952, 'Giappone Moderno'],
+  ],
+  'saudi': [
+    [-2000, 'Arabia Pre-islamica'],
+    [622, 'Islam'],
+    [1744, 'Primo Stato Saudita'],
+    [1932, 'Regno'],
+  ],
+  'israel': [
+    [-2000, 'Canaan'],
+    [-1000, 'Israele / Davide'],
+    [-63, 'Giudea Romana'],
+    [638, 'Islamico'],
+    [1948, 'Stato di Israele'],
+  ],
+  'ethiopia': [
+    [-3000, 'Kush'],
+    [100, 'Aksum'],
+    [1270, 'Impero Salomonide'],
+    [1855, 'Etiopia Moderna'],
+    [1974, 'Derg'],
+    [1991, 'EPRDF'],
+  ],
+  'mali': [
+    [-300, 'Ghana'],
+    [1235, 'Impero del Mali'],
+    [1468, 'Songhai'],
+    [1880, 'Colonialismo'],
+    [1960, 'Indipendente'],
+  ],
+  'brazil': [
+    [-1000, 'Tupi'],
+    [1500, 'Colonia Portoghese'],
+    [1822, 'Impero'],
+    [1889, 'Repubblica'],
+    [1985, 'Democrazia'],
+  ],
+  'mongolia': [
+    [-300, 'Xiongnu'],
+    [1206, 'Impero Mongolo'],
+    [1368, 'Frammentazione'],
+    [1921, 'Rep. Popolare'],
+    [1992, 'Democrazia'],
+  ],
+  'pakistan': [
+    [-2600, 'Civiltà Indo'],
+    [711, 'Conquiste Islamiche'],
+    [1526, 'Mughal'],
+    [1857, 'Raj'],
+    [1947, 'Pakistan'],
+  ],
+  'poland': [
+    [966, 'Regno di Polonia'],
+    [1569, 'Confederazione'],
+    [1795, 'Spartizioni'],
+    [1918, 'Seconda Repubblica'],
+    [1939, 'Occupazione'],
+    [1989, 'Democrazia'],
+  ],
+  'nigeria': [
+    [-300, 'Nok'],
+    [1200, 'Ife / Oyo'],
+    [1804, 'Sokoto'],
+    [1880, 'Britannico'],
+    [1960, 'Indipendente'],
+  ],
+  'uae': [
+    [-3000, 'Arabia Pre-islamica'],
+    [632, 'Califfato'],
+    [1820, 'Protettorato'],
+    [1971, 'Emirati'],
+  ],
+  'qatar': [
+    [-3000, 'Arabia Pre-islamica'],
+    [1916, 'Protettorato'],
+    [1971, 'Qatar'],
+  ],
+  'indonesia': [
+    [-200, 'Srivijaya'],
+    [1293, 'Majapahit'],
+    [1500, 'Sultanati'],
+    [1600, 'VOC Olandese'],
+    [1945, 'Indipendente'],
+  ],
+  'korea_south': [
+    [-57, 'Tre Regni'],
+    [668, 'Silla'],
+    [918, 'Goryeo'],
+    [1392, 'Joseon'],
+    [1910, 'Giappone'],
+    [1953, 'Corea del Sud'],
+  ],
+  'cambodia': [
+    [100, 'Pre-Angkor'],
+    [802, 'Khmer'],
+    [1431, 'Declino'],
+    [1863, 'Francia'],
+    [1953, 'Indipendente'],
+    [1975, 'Khmer Rossi'],
+    [1993, 'Democrazia'],
+  ],
+  'thailand': [
+    [-2500, 'Mon-Khmer'],
+    [802, 'Dominio Khmer'],
+    [1238, 'Sukhothai'],
+    [1351, 'Ayutthaya'],
+    [1767, 'Thonburi'],
+    [1782, 'Bangkok / Rattanakosin'],
+    [1932, 'Monarchia Costituzionale'],
+  ],
+  'vietnam': [
+    [-2000, 'Dong Son / Lac Viet'],
+    [-111, 'Dominio Cinese'],
+    [938, 'Indipendenza'],
+    [1009, 'Dai Viet'],
+    [1802, 'Nguyen'],
+    [1858, 'Coloniale Francese'],
+    [1945, 'Indipendente'],
+    [1954, 'Nord/Sud'],
+    [1975, 'Repubblica Socialista'],
+  ],
+  'australia': [
+    [-50000, 'Aborigeni'],
+    [1606, 'Esplorazioni Europee'],
+    [1788, 'Colonia Britannica'],
+    [1901, 'Commonwealth'],
+    [1986, 'Australia Moderna'],
+  ],
+  'newzealand': [
+    [-1300, 'Maori / Aotearoa'],
+    [1642, 'Esplorazione Europea'],
+    [1840, 'Trattato Waitangi'],
+    [1907, 'Dominion'],
+    [1947, 'Indipendente'],
+  ],
+  'portugal': [
+    [-600, 'Lusitani'],
+    [-19, 'Lusitania Romana'],
+    [711, 'Al-Andalus'],
+    [1139, 'Regno del Portogallo'],
+    [1415, 'Impero Coloniale'],
+    [1580, 'Unione Iberica'],
+    [1640, 'Restaurazione'],
+    [1910, 'Repubblica'],
+    [1926, 'Estado Novo'],
+    [1974, 'Democrazia'],
+  ],
+  'sweden': [
+    [-1000, 'Nordici / Bronzo'],
+    [793, 'Vichinghi'],
+    [1050, 'Svezia Cristiana'],
+    [1523, 'Gustavo Vasa'],
+    [1611, 'Grande Potenza'],
+    [1718, 'Declino'],
+    [1905, 'Svezia Moderna'],
+    [1995, 'Membro UE'],
+  ],
+  'norway': [
+    [-1000, 'Nordici'],
+    [793, 'Vichinghi / Leif Eriksson'],
+    [1030, 'Norvegia Cristiana'],
+    [1397, 'Kalmar'],
+    [1523, 'Danimarca'],
+    [1814, 'Costituzione'],
+    [1905, 'Indipendente'],
+    [1940, 'Occupazione'],
+    [1945, 'Liberazione'],
+  ],
+  'denmark': [
+    [-1000, 'Eta del Bronzo Nordica'],
+    [-500, 'Tribu Germaniche / Cimbri'],
+    [793, 'Vichinghi / Danelaw'],
+    [960, 'Danimarca Cristiana'],
+    [1397, 'Unione di Kalmar'],
+    [1523, 'Danimarca Moderna'],
+    [1807, 'Guerre Napoleoniche'],
+    [1849, 'Monarchia Costituzionale'],
+    [1940, 'Occupazione Nazista'],
+    [1945, 'Danimarca Democratica'],
+    [1973, 'Membro UE'],
+  ],
+  'argentina': [
+    [-8000, 'Popoli Indigeni (Mapuche, Tehuelche)'],
+    [1516, 'Esplorazione Spagnola'],
+    [1580, 'Buenos Aires Fondata'],
+    [1776, 'Vicereame del Rio de la Plata'],
+    [1816, 'Argentina Indipendente'],
+    [1853, 'Costituzione / Liberalismo'],
+    [1880, 'Oligarchia / Belle Epoque'],
+    [1916, 'Radicalismo'],
+    [1943, 'Peronismo'],
+    [1976, 'Dittatura Militare'],
+    [1983, 'Democrazia'],
+    [2001, 'Crisi Economica'],
+  ],
+  'morocco': [
+    [-800, 'Berberi / Fenici / Cartagine'],
+    [-40, 'Mauritania Tingitana (Roma)'],
+    [681, 'Conquista Araba / Islam'],
+    [789, 'Idrisidi'],
+    [1062, 'Almoravidi'],
+    [1147, 'Almohadi'],
+    [1554, 'Saadidi'],
+    [1666, 'Alaouiti'],
+    [1912, 'Protettorato Francese'],
+    [1956, 'Indipendenza'],
+  ],
+  'afghanistan': [
+    [-3000, 'Battriana / Civilta Helmand'],
+    [-550, 'Achemenidi'],
+    [-330, 'Alessandro Magno'],
+    [652, 'Califfato Islamico'],
+    [1219, 'Invasione Mongola'],
+    [1747, 'Durrani'],
+    [1919, 'Indipendenza'],
+    [1979, 'Invasione Sovietica'],
+    [1996, 'Talebani'],
+    [2001, 'Invasione USA'],
+    [2021, 'Ritorno Talebani'],
+  ],
+  'romania': [
+    [-2000, 'Traci / Daci'],
+    [-106, 'Dacia Romana'],
+    [271, 'Ritiro Romano'],
+    [1000, 'Principati Valacchia e Moldavia'],
+    [1396, 'Ottomano'],
+    [1859, 'Romania Unita'],
+    [1877, 'Indipendenza'],
+    [1947, 'Repubblica Popolare'],
+    [1965, 'Ceausescu'],
+    [1989, 'Rivoluzione'],
+    [2007, 'Membro UE'],
+  ],
+  'kenya': [
+    [-3000, 'Bantu e Cushiti'],
+    [900, 'Sultanati Swahili'],
+    [1498, 'Portoghesi'],
+    [1698, 'Oman / Zanzibar'],
+    [1895, 'Protettorato Britannico'],
+    [1963, 'Indipendenza'],
+    [2002, 'Democrazia Multipartitica'],
+  ],
+};
+
+// ── CONSTANTS
+
+
+var MIN=-3000,MAX=2024,curYear=2024,selected=[],curDim='politica',cache={};
+var ERAS=[
+  {n:'Antichità',    f:-3000,t:-500, c:'var(--ant)'},
+  {n:'Classica',     f:-500, t:500,  c:'var(--cls)'},
+  {n:'Medioevo',     f:500,  t:1500, c:'var(--med)'},
+  {n:'Età Moderna',  f:1500, t:1800, c:'var(--mod)'},
+  {n:'XIX Sec.',     f:1800, t:1900, c:'var(--rec)'},
+  {n:'XX Sec.',      f:1900, t:2000, c:'var(--xx)'},
+  {n:'Contemporanea',f:2000, t:2025, c:'var(--con)'},
+];
+var DIMS=[
+  {id:'politica', lbl:'🏛️ Politica', desc:'Forma di governo, sovrano, istituzioni, stabilità'},
+  {id:'economica',lbl:'💰 Economica',desc:'Risorse, commercio, tecnologia produttiva, ricchezza'},
+  {id:'militare', lbl:'⚔️ Militare', desc:'Forza militare, conflitti in corso, alleanze'},
+  {id:'sociale',  lbl:'👥 Sociale',  desc:'Popolazione, classi sociali, vita quotidiana'},
+  {id:'culturale',lbl:'🎭 Culturale',desc:'Religione, filosofia, letteratura, linee di pensiero, arte, scienza, influenze culturali'},
+];
+
+function fmtY(y){return y<0?Math.abs(y)+' a.C.':(y===0?'Anno 0':y+' d.C.');}
+function getEra(y){for(var i=ERAS.length-1;i>=0;i--){if(y>=ERAS[i].f)return ERAS[i];}return ERAS[0];}
+function getCiv(id,y){
+  var e=ERA_NAMES[id]; if(!e||!e.length)return '';
+  var c=e[0][1];
+  for(var i=0;i<e.length;i++){if(y>=e[i][0])c=e[i][1];else break;}
+  return c;
+}
+function yToP(y){return(y-MIN)/(MAX-MIN);}
+
+function buildTimeline(){
+  var total=MAX-MIN;
+  document.getElementById('eraStrip').innerHTML=ERAS.map(function(e){
+    var w=((Math.min(e.t,MAX)-Math.max(e.f,MIN))/total*100).toFixed(2);
+    return '<div class="era-seg" style="width:'+w+'%;background:'+e.c+';opacity:.5"></div>';
+  }).join('');
+  var marks=[-3000,-2000,-1000,-500,0,500,1000,1500,1800,1900,2000,2024];
+  document.getElementById('tlMarks').innerHTML=marks.map(function(y){
+    return '<div class="timeline-mark" style="position:absolute;bottom:0;left:'+yToP(y)*100+'%;transform:translateX(-50%)">'+(y<0?Math.abs(y)+'aC':y)+'</div>';
+  }).join('');
+  setThumb(curYear);
+  initDrag();
+}
+
+function setThumb(y){
+  var p=yToP(y)*100;
+  var era=getEra(y);
+  document.getElementById('tlThumb').style.left=p+'%';
+  document.getElementById('tlThumb').style.background=era.c;
+  document.getElementById('tlFill').style.width=p+'%';
+  document.getElementById('tlFill').style.background='linear-gradient(90deg,var(--ant),var(--cls),var(--med),var(--mod),var(--rec),var(--xx),var(--con))';
+  document.getElementById('yearDisplay').textContent=fmtY(y);
+  document.getElementById('yearInput').value=y;
+  var b=document.getElementById('eraBadge');
+  b.textContent=era.n; b.style.color=era.c; b.style.borderColor=era.c;
+  updateCivLabels();
+}
+
+function initDrag(){
+  var track=document.getElementById('tlTrack');
+  var dragging=false;
+  function fromEv(e){
+    var r=track.getBoundingClientRect();
+    var cx=e.touches?e.touches[0].clientX:e.clientX;
+    var p=Math.max(0,Math.min(1,(cx-r.left)/r.width));
+    return Math.round(MIN+p*(MAX-MIN));
+  }
+  track.addEventListener('mousedown',function(e){dragging=true;curYear=fromEv(e);setThumb(curYear);});
+  document.addEventListener('mousemove',function(e){if(!dragging)return;e.preventDefault();curYear=fromEv(e);setThumb(curYear);});
+  document.addEventListener('mouseup',function(){dragging=false;});
+  track.addEventListener('touchstart',function(e){dragging=true;curYear=fromEv(e);setThumb(curYear);},{passive:true});
+  document.addEventListener('touchmove',function(e){if(!dragging)return;e.preventDefault();curYear=fromEv(e);setThumb(curYear);},{passive:false});
+  document.addEventListener('touchend',function(){dragging=false;});
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('yearInput').addEventListener('change',function(){
+    var v=parseInt(this.value)||0;
+    curYear=Math.max(MIN,Math.min(MAX,v));
+    setThumb(curYear);
+  });
+});
+
+function buildGrid(){
+  var g=document.getElementById('entGrid'); g.innerHTML='';
+  ENTITIES.forEach(function(e){
+    var d=document.createElement('div');
+    d.className='ec'; d.dataset.id=e.id;
+    d.style.setProperty('--c-color',e.color);
+    d.innerHTML='<span class="ec-flag">'+e.flag+'</span>'
+      +'<div class="ec-name">'+e.modern+'</div>'
+      +'<div class="ec-civ" id="civ-'+e.id+'">'+getCiv(e.id,curYear)+'</div>';
+    d.onclick=function(){toggleEnt(e.id);};
+    g.appendChild(d);
+  });
+}
+
+function updateCivLabels(){
+  ENTITIES.forEach(function(e){
+    var el=document.getElementById('civ-'+e.id);
+    if(el)el.textContent=getCiv(e.id,curYear);
+  });
+}
+
+function toggleEnt(id){
+  var i=selected.indexOf(id);
+  if(i>=0){selected.splice(i,1);}
+  else{if(selected.length>=3)return;selected.push(id);}
+  refreshUI();
+}
+
+function refreshUI(){
+  document.querySelectorAll('.ec').forEach(function(el){
+    var id=el.dataset.id,i=selected.indexOf(id);
+    el.classList.remove('sel-1','sel-2','sel-3','disabled');
+    var ob=el.querySelector('.sel-badge');if(ob)ob.remove();
+    if(i>=0){
+      el.classList.add('sel-'+(i+1));
+      var b=document.createElement('div');b.className='sel-badge';b.textContent=i+1;el.appendChild(b);
+    }else if(selected.length>=3){el.classList.add('disabled');}
+  });
+  document.getElementById('btnGo').disabled=selected.length===0;
+  var s=document.getElementById('selSum');
+  if(!selected.length){s.innerHTML='Nessuna civiltà selezionata';return;}
+  var names=selected.map(function(id){
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    return '<strong>'+e.flag+' '+e.modern+'</strong>';
+  });
+  s.innerHTML='<strong>'+fmtY(curYear)+'</strong> &nbsp;·&nbsp; '+names.join(' + ');
+}
+
+function resetAll(){
+  selected=[];refreshUI();
+  document.getElementById('resultsArea').innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">Seleziona anno e civiltà</div></div>';
+}
+
+// ── ANALYSIS ──────────────────────────────────────────────────────────────
+function runAnalysis(){
+  if(!selected.length)return;
+  curDim='politica';
+  if(selected.length===1)renderSingle();
+  else renderCompare();
+}
+
+function renderSingle(){
+  var e=ENTITIES.find(function(x){return x.id===selected[0];});
+  var civ=getCiv(e.id,curYear);
+  var tabs=DIMS.map(function(d){
+    return '<button class="res-tab'+(d.id==='politica'?' on':'')+'" data-dim="'+d.id+'" onclick="switchSingle(this)">'+d.lbl+'</button>';
+  }).join('');
+  document.getElementById('resultsArea').innerHTML=
+    '<div class="results">'
+    +'<div class="result-header" style="border-top:3px solid '+e.color+'">'
+    +'<div class="rh-flag">'+e.flag+'</div>'
+    +'<div><div class="rh-name">'+e.name+'</div><div class="rh-civ">'+civ+'</div></div>'
+    +'<div class="rh-year">'+fmtY(curYear)+'</div>'
+    +'</div>'
+    +'<div class="res-tabs">'+tabs+'</div>'
+    +'<div class="res-body"><div id="sContent"><div class="loading-msg"><div class="spinner"></div>Analisi in corso...</div></div></div>'
+    +'</div>';
+  fetchSingle(selected[0],curYear,'politica');
+}
+
+function switchSingle(el){
+  document.querySelectorAll('.res-tab').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+  curDim=el.dataset.dim;
+  var ck=curYear+'_'+selected[0]+'_'+curDim;
+  if(cache[ck]){document.getElementById('sContent').innerHTML=cache[ck];return;}
+  document.getElementById('sContent').innerHTML='<div class="loading-msg"><div class="spinner"></div>Analisi in corso...</div>';
+  fetchSingle(selected[0],curYear,curDim);
+}
+
+function fetchSingle(id,year,dim){
+  var e=ENTITIES.find(function(x){return x.id===id;});
+  var civ=getCiv(id,year);
+  var dimObj=DIMS.find(function(d){return d.id===dim;});
+  var prompt='Sei uno storico esperto per un atlante didattico in italiano. '
+    +'IMPORTANTE: rispondi SOLO in HTML valido usando tag h4 e p. NON usare markdown, NON usare ### o **, solo HTML. '
+    +'Descrivi la situazione di '+e.name+' (territorio: '+e.modern+') nell\'anno '+fmtY(year)+'. '
+    +'La civilta o stato dominante in quel territorio era: '+civ+'. '
+    +'Sezione richiesta: '+dimObj.lbl+' — '+dimObj.desc+'. '
+    +'Struttura la risposta con tag HTML h4 per i sotto-titoli e p per i paragrafi. '
+    +'Fornisci analisi densa e concreta: nomi di sovrani o leader, eventi chiave, dati demografici o economici stimati, relazioni rilevanti. '
+    +'Se il periodo e molto antico o le fonti sono scarse, indicalo con onesta storica. '
+    +'Circa 280-350 parole.';
+  callAI(prompt,function(html){
+    var ck=year+'_'+id+'_'+dim;
+    cache[ck]='<div class="res-content">'+html+'</div>';
+    var el=document.getElementById('sContent');
+    if(el)el.innerHTML=cache[ck];
+  });
+}
+
+function renderCompare(){
+  var cols=selected.map(function(id){
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    return e.color;
+  });
+  var headStyle='grid-template-columns:'+selected.map(function(){return '1fr';}).join(' ')+';';
+  var heads=selected.map(function(id){
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    var civ=getCiv(id,curYear);
+    return '<div class="compare-head" style="border-top:3px solid '+e.color+'">'
+      +'<div class="comp-flag">'+e.flag+'</div>'
+      +'<div><div class="comp-name">'+e.modern+'</div><div class="comp-civ">'+civ+'</div></div>'
+      +'</div>';
+  }).join('');
+  var dimTabs=DIMS.map(function(d){
+    return '<button class="dim-tab'+(d.id==='politica'?' on':'')+'" data-dim="'+d.id+'" onclick="switchCompare(this)">'+d.lbl+'</button>';
+  }).join('');
+  var colDivs=selected.map(function(id){
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    return '<div class="comp-col" style="border-top:2px solid '+e.color+'">'
+      +'<div class="comp-col-label">'+e.flag+' '+e.modern+'</div>'
+      +'<div id="col-'+id+'"><div class="loading-msg"><div class="spinner"></div>Analisi...</div></div>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('resultsArea').innerHTML=
+    '<div class="results">'
+    +'<div class="compare-heads" style="'+headStyle+'">'+heads+'</div>'
+    +'<div class="comp-body">'
+    +'<div class="dim-tabs">'+dimTabs+'</div>'
+    +'<div class="comp-cols" style="'+headStyle+'">'+colDivs+'</div>'
+    +'</div>'
+    +'<div class="rel-box">'
+    +'<div class="rel-box-title">Relazioni e Dinamiche di Potere — AI <div class="spinner-sm show" id="relSpin"></div></div>'
+    +'<div id="relContent" class="res-content"><div class="loading-msg"><div class="spinner"></div>Analisi in corso...</div></div>'
+    +'</div>'
+    +'</div>';
+
+  fetchCompare(selected,curYear,'politica');
+}
+
+function switchCompare(el){
+  document.querySelectorAll('.dim-tab').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+  curDim=el.dataset.dim;
+  fetchCompare(selected,curYear,curDim);
+}
+
+function fetchCompare(entities,year,dim){
+  var dimObj=DIMS.find(function(d){return d.id===dim;});
+  entities.forEach(function(id){
+    var ck=year+'_'+id+'_'+dim;
+    var colEl=document.getElementById('col-'+id);
+    if(cache[ck]){if(colEl)colEl.innerHTML=cache[ck];return;}
+    if(colEl)colEl.innerHTML='<div class="loading-msg"><div class="spinner"></div>Analisi...</div>';
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    var civ=getCiv(id,year);
+    var prompt='Sei uno storico per un atlante didattico in italiano. '
+      +'IMPORTANTE: rispondi SOLO in HTML con tag h4 e p. NON usare markdown. '
+      +'Descrivi brevemente '+e.name+' ('+e.modern+') nell\'anno '+fmtY(year)+'. '
+      +'Civilta: '+civ+'. '
+      +'Sezione: '+dimObj.lbl+' — '+dimObj.desc+'. '
+      +'Usa h4 e p. Conciso ma denso: nomi, dati, eventi chiave. 150-200 parole.';
+    callAI(prompt,(function(eid){
+      return function(html){
+        var ck2=year+'_'+eid+'_'+dim;
+        cache[ck2]='<div class="res-content">'+html+'</div>';
+        var cel=document.getElementById('col-'+eid);
+        if(cel)cel.innerHTML=cache[ck2];
+      };
+    })(id));
+  });
+  fetchRelations(entities,year,dim);
+}
+
+function fetchRelations(entities,year,dim){
+  var sp=document.getElementById('relSpin');if(sp)sp.classList.add('show');
+  var dimObj=DIMS.find(function(d){return d.id===dim;});
+  var names=entities.map(function(id){
+    var e=ENTITIES.find(function(x){return x.id===id;});
+    return e.flag+' '+e.modern+' ('+getCiv(id,year)+')';
+  });
+  var prompt='Sei uno storico esperto per un atlante didattico in italiano. '
+    +'IMPORTANTE: rispondi SOLO in HTML con tag h4 e p. NON usare markdown, NON usare ### o **. '
+    +'Analizza le relazioni tra '+names.join(', ')+' nell\'anno '+fmtY(year)+'. '
+  +(dim==='culturale'
+    ? '\u2014 FOCUS FILOSOFIA E LETTERATURA. '
+      +'Struttura con h4 e p le seguenti sezioni: '
+      +'CONTATTI E SCAMBI CULTURALI: quali idee, testi, tradizioni religiose viaggiarono tra questi territori? Attraverso quali canali (commercio, conquista, traduzione, pellegrinaggio)? '
+      +'CONFRONTO FILOSOFICO E RELIGIOSO: le grandi linee di pensiero di ciascuna civilta a confronto. Come ciascuna risponde alle domande fondamentali (origine del mondo, natura del bene, rapporto tra individuo e cosmo, legittimita del potere)? Dove convergono, dove divergono radicalmente? '
+      +'LETTERATURA A CONFRONTO: opere, generi, lingue scritte. Quali testi circolavano o erano conosciuti nell\u2019altra civilta? '
+      +'DIALOGO O SCONTRO DI VISIONI DEL MONDO: questa e la sezione piu importante. Analizza in profondita come le due visioni del mondo si relazionavano: sincretismo, opposizione, indifferenza reciproca? Cosa avrebbe detto un filosofo di una civilta dell\u2019altra? '
+      +'Cita pensatori, testi, concetti specifici con i loro nomi. Circa 420-500 parole.'
+    : '\u2014 '
+      +'Struttura con h4 e p: '
+      +'CONTATTI E RELAZIONI (commercio, guerre, diplomazia, influenze tra questi territori); '
+      +'CONFRONTO '+dimObj.lbl.toUpperCase()+' (analisi comparata su questa dimensione specifica); '
+      +'DINAMICHE DI POTERE (chi era piu forte, chi ascendeva o declinava). '
+      +'Sii concreto: sovrani, battaglie, rotte, trattati. 350-420 parole.'
+  );
+  callAI(prompt,function(html){
+    var sp2=document.getElementById('relSpin');if(sp2)sp2.classList.remove('show');
+    var el=document.getElementById('relContent');
+    if(el)el.innerHTML=html;
+  });
+}
+
+
+// ── AI CALLS ─────────────────────────────────────────────────────────────────
+var singleCache  = {};
+var compareCache = {};
+
+function callAI(prompt, cb) {
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 400,
+      messages: [{role: 'user', content: prompt}]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.content && d.content[0] && d.content[0].text) cb(null, d.content[0].text);
+    else cb((d.error && d.error.message) || 'risposta vuota', null);
+  })
+  .catch(function(e) { cb(e.message || 'errore rete', null); });
+}
+
+function errHTML(msg) {
+  return '<p style="color:var(--dn);font-size:11px">⚠ ' + msg
+    + ' &nbsp;<button onclick="retryBtn(this)" class="retry-btn">↺ riprova</button></p>';
+}
+function retryBtn(btn) { if (btn.closest('.results')) runAnalysis(); }
+
+function wrapHTML(text) {
+  var t = text.trim();
+  // strip ``` fences
+  t = t.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+  // convert markdown headings → HTML (Claude sometimes ignores HTML-only instruction)
+  t = t.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+  t = t.replace(/^###\s+(.+)$/gm,  '<h4>$1</h4>');
+  t = t.replace(/^##\s+(.+)$/gm,   '<h4>$1</h4>');
+  t = t.replace(/^#\s+(.+)$/gm,    '<h4>$1</h4>');
+  // convert markdown bold **text** → <strong>
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // convert bare "- item" lines → <li> wrapped in <ul>
+  t = t.replace(/((?:^- .+\n?)+)/gm, function(block) {
+    var items = block.trim().split('\n').map(function(l) {
+      return '<li>' + l.replace(/^- /,'').trim() + '</li>';
+    }).join('');
+    return '<ul>' + items + '</ul>';
+  });
+  return '<div class="res-content">' + t + '</div>';
+}
+
+// ── SINGLE ENTITY: one call per tab, on demand, with cache ──────────────────
+function renderSingle() {
+  var e = ENTITIES.find(function(x) { return x.id === selected[0]; });
+  var civ = getCiv(e.id, curYear);
+  var tabs = DIMS.map(function(d) {
+    return '<button class="res-tab' + (d.id==='politica'?' on':'') + '" data-dim="' + d.id
+      + '" onclick="switchSingleDim(this)">' + d.lbl + '</button>';
+  }).join('');
+  document.getElementById('resultsArea').innerHTML =
+    '<div class="results">'
+    + '<div class="result-header" style="border-top:3px solid ' + e.color + '">'
+    + '<div class="rh-flag">' + e.flag + '</div>'
+    + '<div><div class="rh-name">' + e.name + '</div><div class="rh-civ">' + civ + '</div></div>'
+    + '<div class="rh-year">' + fmtY(curYear) + '</div>'
+    + '</div>'
+    + '<div class="res-tabs">' + tabs + '</div>'
+    + '<div class="res-body"><div id="sContent">'
+    + '<div class="loading-msg"><div class="spinner"></div>Analisi...</div>'
+    + '</div></div></div>';
+  curDim = 'politica';
+  fetchSingleDim(selected[0], curYear, 'politica');
+}
+
+function fetchSingleDim(id, year, dim) {
+  var ck = year + '_' + id + '_' + dim;
+  if (singleCache[ck]) {
+    var el = document.getElementById('sContent');
+    if (el) el.innerHTML = singleCache[ck];
+    return;
+  }
+  var e   = ENTITIES.find(function(x) { return x.id === id; });
+  var civ = getCiv(id, year);
+  var dimObj = DIMS.find(function(d) { return d.id === dim; });
+  var isCult = (dim === 'culturale');
+  var cultExtra = isCult
+    ? 'Sotto-sezioni: Religione (1-2 bullet), Filosofia/Pensiero (1-2 bullet con nome pensatore), Letteratura (1 bullet con titolo opera), Arte. '
+    : '';
+  var prompt = 'Storico, atlante didattico, italiano. '
+    + e.modern + ' (' + civ + ') — ' + fmtY(year) + '. Sezione: ' + dimObj.lbl + '. '
+    + 'Includi 1 bullet di contesto storico (periodo e tendenza in corso in quegli anni). '
+    + cultExtra
+    + 'Formato SOLO HTML: un h4 con il nome della civilta, poi una ul con 4-6 li concisi (max 15 parole ciascuno). '
+    + 'Ogni li: fatto chiave con nome proprio, dato o evento. Niente paragrafi. Niente markdown. Max 80 parole totali.';
+
+  callAI(prompt, function(err, text) {
+    var html = err ? errHTML(err) : wrapHTML(text);
+    singleCache[ck] = html;
+    var el = document.getElementById('sContent');
+    if (el) el.innerHTML = html;
+  });
+}
+
+function switchSingleDim(btn) {
+  document.querySelectorAll('.res-tab').forEach(function(t) { t.classList.remove('on'); });
+  btn.classList.add('on');
+  curDim = btn.dataset.dim;
+  var ck = curYear + '_' + selected[0] + '_' + curDim;
+  var el = document.getElementById('sContent');
+  if (singleCache[ck]) { el.innerHTML = singleCache[ck]; return; }
+  el.innerHTML = '<div class="loading-msg"><div class="spinner"></div>Analisi...</div>';
+  fetchSingleDim(selected[0], curYear, curDim);
+}
+
+// ── COMPARE: 2 parallel calls (cols + relations), Promise.all ───────────────
+function renderCompare() {
+  var headStyle = 'grid-template-columns:' + selected.map(function() { return '1fr'; }).join(' ') + ';';
+  var heads = selected.map(function(id) {
+    var e   = ENTITIES.find(function(x) { return x.id === id; });
+    var civ = getCiv(id, curYear);
+    return '<div class="compare-head" style="border-top:3px solid ' + e.color + '">'
+      + '<div class="comp-flag">' + e.flag + '</div>'
+      + '<div><div class="comp-name">' + e.modern + '</div><div class="comp-civ">' + civ + '</div></div>'
+      + '</div>';
+  }).join('');
+  var dimTabs = DIMS.map(function(d) {
+    return '<button class="dim-tab' + (d.id==='politica'?' on':'') + '" data-dim="' + d.id
+      + '" onclick="switchCompareDim(this)">' + d.lbl + '</button>';
+  }).join('');
+  var colDivs = selected.map(function(id) {
+    var e = ENTITIES.find(function(x) { return x.id === id; });
+    return '<div class="comp-col" style="border-top:2px solid ' + e.color + '">'
+      + '<div class="comp-col-label">' + e.flag + ' ' + e.modern + '</div>'
+      + '<div id="col-' + id + '"><div class="loading-msg"><div class="spinner"></div></div></div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('resultsArea').innerHTML =
+    '<div class="results">'
+    + '<div class="compare-heads" style="' + headStyle + '">' + heads + '</div>'
+    + '<div class="comp-body">'
+    + '<div class="dim-tabs">' + dimTabs + '</div>'
+    + '<div class="comp-cols" style="' + headStyle + '">' + colDivs + '</div>'
+    + '</div>'
+    + '<div class="rel-box">'
+    + '<div class="rel-box-title">Relazioni — AI <div class="spinner-sm show" id="relSpin"></div></div>'
+    + '<div id="relContent" class="res-content">'
+    + '<div class="loading-msg"><div class="spinner"></div>Analisi...</div>'
+    + '</div></div></div>';
+
+  curDim = 'politica';
+  fetchCompareAll(selected, curYear, 'politica');
+}
+
+function fetchCompareAll(entities, year, dim) {
+  var ck     = year + '_' + entities.slice().sort().join('_') + '_' + dim;
+  var relCk  = ck + '_rel';
+
+  // show spinners
+  entities.forEach(function(id) {
+    var ck2 = year + '_' + id + '_' + dim;
+    var el  = document.getElementById('col-' + id);
+    if (!el) return;
+    if (singleCache[ck2]) { el.innerHTML = singleCache[ck2]; }
+    else { el.innerHTML = '<div class="loading-msg"><div class="spinner"></div></div>'; }
+  });
+
+  // build col prompts and fetch in parallel
+  var colPromises = entities.map(function(id) {
+    var ck2 = year + '_' + id + '_' + dim;
+    if (singleCache[ck2]) return Promise.resolve({id:id, html:singleCache[ck2]});
+    var e      = ENTITIES.find(function(x) { return x.id === id; });
+    var civ    = getCiv(id, year);
+    var dimObj = DIMS.find(function(d) { return d.id === dim; });
+    var isCult = (dim === 'culturale');
+    var cultExtra2 = isCult
+      ? 'Includi: religione (1 bullet), filosofo chiave + idea (1 bullet), opera letteraria (1 bullet). '
+      : '';
+    var prompt = 'Storico, atlante didattico, italiano. '
+      + e.modern + ' (' + civ + ') — ' + fmtY(year) + '. ' + dimObj.lbl + '. '
+      + 'Primo bullet: contesto del periodo (cosa stava accadendo in quegli anni). '
+      + cultExtra2
+      + 'Formato SOLO HTML: h4 con nome civilta, ul con 3-4 li (max 12 parole ciascuno). '
+      + 'Fatti chiave con nomi propri. Niente paragrafi. Niente markdown. Max 50 parole.';
+    return new Promise(function(resolve) {
+      callAI(prompt, function(err, text) {
+        var h = err ? errHTML(err) : wrapHTML(text);
+        singleCache[ck2] = h;
+        resolve({id:id, html:h});
+      });
+    });
+  });
+
+  // relations prompt
+  var isCult  = (dim === 'culturale');
+  var civs    = entities.map(function(id) {
+    var e = ENTITIES.find(function(x) { return x.id === id; });
+    return e.modern + ' (' + getCiv(id, year) + ')';
+  });
+  var relPrompt = 'Storico, atlante didattico, italiano. '
+    + 'Relazioni tra ' + civs.join(' e ') + ' — ' + fmtY(year) + ' (considera anche il periodo storico circostante). '
+    + 'Dimensione: ' + DIMS.find(function(d){return d.id===dim;}).lbl + '. '
+    + (isCult
+      ? 'Formato SOLO HTML: '
+        + 'h4 "Contatti culturali" + ul 2-3 li (scambi di idee, testi, rotte); '
+        + 'h4 "Confronto filosofico-religioso" + ul 3-4 li (pensatori reali, idee chiave, differenze/convergenze); '
+        + 'h4 "Scontro o dialogo" + ul 2 li (giudizio sintetico). '
+        + 'Max 120 parole. Niente paragrafi. Niente markdown. '
+      : 'Formato SOLO HTML: '
+        + 'h4 "Contatti" + ul 2-3 li; '
+        + 'h4 "Confronto" + ul 2-3 li; '
+        + 'h4 "Potere" + ul 1-2 li (chi saliva, chi scendeva). '
+        + 'Max 90 parole. Niente paragrafi. Niente markdown. ');
+
+  // Fully sequential: col1 → 1s → col2 → 1s → relations (avoids exceeded_limit)
+  function runSeq(i) {
+    if (i < colPromises.length) {
+      colPromises[i].then(function(r) {
+        var el = document.getElementById('col-' + r.id);
+        if (el) el.innerHTML = r.html;
+        setTimeout(function() { runSeq(i + 1); }, 900);
+      });
+    } else {
+      // all cols done → now fetch relations
+      callAI(relPrompt, function(err, text) {
+        var relEl = document.getElementById('relContent');
+        if (relEl) relEl.innerHTML = err ? errHTML(err) : wrapHTML(text);
+        var sp = document.getElementById('relSpin');
+        if (sp) sp.classList.remove('show');
+      });
+    }
+  }
+  runSeq(0);
+}
+
+function switchCompareDim(btn) {
+  document.querySelectorAll('.dim-tab').forEach(function(t) { t.classList.remove('on'); });
+  btn.classList.add('on');
+  curDim = btn.dataset.dim;
+  // show cached or spinner per col
+  var allCached = selected.every(function(id) {
+    return !!singleCache[curYear + '_' + id + '_' + curDim];
+  });
+  selected.forEach(function(id) {
+    var ck2 = curYear + '_' + id + '_' + curDim;
+    var el  = document.getElementById('col-' + id);
+    if (!el) return;
+    if (singleCache[ck2]) el.innerHTML = singleCache[ck2];
+    else el.innerHTML = '<div class="loading-msg"><div class="spinner"></div></div>';
+  });
+  var relEl = document.getElementById('relContent');
+  if (relEl) relEl.innerHTML = '<div class="loading-msg"><div class="spinner"></div></div>';
+  var sp = document.getElementById('relSpin');
+  if (sp) sp.classList.add('show');
+  fetchCompareAll(selected, curYear, curDim);
+}
+
+function runRandom(){
+  var y = Math.round(-3000 + Math.random()*(2024-(-3000)));
+  curYear = y;
+  setThumb(y);
+  selected = [];
+  var pool = ENTITIES.slice();
+  var i1 = Math.floor(Math.random()*pool.length);
+  selected.push(pool[i1].id);
+  pool.splice(i1,1);
+  var i2 = Math.floor(Math.random()*pool.length);
+  selected.push(pool[i2].id);
+  refreshUI();
+  setTimeout(function(){ runAnalysis(); }, 80);
+}
+window.addEventListener('load',function(){buildTimeline();buildGrid();refreshUI();});
+</script>
+</body></html>
